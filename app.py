@@ -5,6 +5,8 @@ import pandas as pd
 import random
 import time
 
+from streamlit_gsheets import GSheetsConnection
+
 # ---------------------------------------------------
 # Streamlit Page Configuration
 # ---------------------------------------------------
@@ -34,18 +36,16 @@ st.subheader("Business Question")
 st.markdown(f"{business_question}")
 
 # ---------------------------------------------------
-# Data Loading Function
+# Data Loading Function (Using st.connection)
 # ---------------------------------------------------
-GOOGLE_SHEET_CSV_URL = (
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQW37h62vVLbei_loKMX_b94Uyo92CZPKLar-tzKttlWjsd5A3JVzjkgjFhVT8wTBpAzUajD_G6cCnw/pubhtml"
-)
-
 @st.cache_data(show_spinner=False)
 def load_data():
     try:
-        csv_url = GOOGLE_SHEET_CSV_URL.replace('/pubhtml', '/pub?output=csv')
-        data = pd.read_csv(csv_url)
-        st.success("Data successfully loaded from Google Sheet!")
+        # Create a connection to the Google Sheet
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        # Read the data (defaults to the first worksheet)
+        data = conn.read()
+        st.success("Data successfully loaded from Google Sheet using secrets!")
     except Exception as e:
         st.warning("Error loading Google Sheet. Falling back to Seaborn's Titanic dataset.")
         st.warning(f"**Error details**: {e}")
@@ -154,3 +154,4 @@ if st.session_state.chart_displayed and st.session_state.selected_chart:
             if hasattr(st.session_state, 'elapsed_time'):
                 del st.session_state.elapsed_time
             st.rerun()
+
